@@ -3,12 +3,12 @@ local blueprint = require("lib.blueprint")
 local player_data = require("lib.player_data")
 local util = require("util")
 local mod_util = require("lib/util")
-local modal_defines = require("./defines")
-local build_frame = require('./modal-frame')
-local screen_protos = require('./modal-protos')
-local screen_colors = require('./modal-colors')
-local screen_strings = require('./modal-strings')
-local screen_recipes = require('./modal-recipes')
+local modal_defines = require("defines")
+local build_frame = require("modal-frame")
+local screen_protos = require("modal-protos")
+local screen_colors = require("modal-colors")
+local screen_strings = require("modal-strings")
+local screen_recipes = require("modal-recipes")
 
 local modal = {}
 

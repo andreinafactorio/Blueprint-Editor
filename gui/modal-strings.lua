@@ -1,5 +1,5 @@
 local blueprint = require("lib.blueprint")
-local modal_defines = require("./defines")
+local modal_defines = require("defines")
 
 local screen_strings = {}
 

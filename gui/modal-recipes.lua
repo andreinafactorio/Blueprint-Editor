@@ -1,7 +1,7 @@
 local proto_util = require("lib.proto")
 local blueprint = require("lib.blueprint")
 local player_data = require("lib.player_data")
-local modal_defines = require("./defines")
+local modal_defines = require("defines")
 local mod_util = require("lib.util")
 local text_util = require("lib.text")
 

@@ -1,6 +1,6 @@
 local blueprint = require("lib.blueprint")
 local proto_util = require("lib.proto")
-local modal_defines = require("./defines")
+local modal_defines = require("defines")
 local text_util = require("lib.text")
 
 local screen_protos = {}
