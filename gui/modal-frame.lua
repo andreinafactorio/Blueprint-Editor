@@ -1,4 +1,4 @@
-local modal_defines = require("./defines")
+local modal_defines = require("defines")
 
 local function build_frame(player, container)
     local modal_frame = container.add({
