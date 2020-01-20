@@ -1,11 +1,48 @@
 local mod_util = {}
 
+function mod_util.is_player_holding_blueprint(player)
+    return player.cursor_stack ~= nil
+        and player.cursor_stack.valid_for_read
+        and player.cursor_stack.is_blueprint
+        and player.cursor_stack.is_blueprint_setup()
+end
+
 function mod_util.get_table_keys(data)
     local keys = {}
     for key, value in pairs(data) do
         table.insert(keys, key)
     end
     return keys
+end
+
+function mod_util.get_table_values(data)
+    local values = {}
+    for key, value in pairs(data) do
+        table.insert(values, value)
+    end
+    return values
+end
+
+function mod_util.table_shallow_copy(data)
+    local copy = {}
+    for key, value in pairs(data) do
+        copy[key] = value
+    end
+    return copy
+end
+
+function mod_util.table_shallow_copy_path(data, props)
+    data = mod_util.table_shallow_copy(data)
+
+    if props ~= nil then
+        local parent = data
+        for _, prop in ipairs(props) do
+            parent[prop] = mod_util.table_shallow_copy(parent[prop])
+            parent = parent[prop]
+        end
+    end
+
+    return data
 end
 
 function mod_util.string_starts_with(text, starts_with)

@@ -39,37 +39,78 @@ function proto.get_virtual_signal_localised_name(signal)
     return get_proto_localised_name(game.virtual_signal_prototypes, signal, "virtual-signal-name")
 end
 
-function proto.order_comparator(proto_a, proto_b)
-    -- Compare existance of a group prop.
-    if proto_a.group ~= nil and proto_b.group == nil then
+function proto.group_comparator(proto_a, proto_b)
+    -- Compare existance of an order prop.
+    if proto_a.order == nil and proto_b.order ~= nil then
         return true
-    elseif proto_a.group == nil and proto_b.group ~= nil then
+    elseif proto_a.order ~= nil and proto_b.order == nil then
+        return false
+    end
+
+    -- Compare orders, if both have a value for the prop.
+    if proto_a.order ~= nil and proto_b.order ~= nil then
+        if proto_a.order < proto_b.order then
+            return true
+        elseif proto_a.order > proto_b.order then
+            return false
+        end
+    end
+
+    if proto_a.name < proto_b.name then
+        return true
+    elseif proto_a.name > proto_b.name then
+        return false
+    end
+
+    return false
+end
+
+function proto.order_comparator(proto_a, proto_b)
+
+    -- Compare existance of a group order prop.
+    if proto_a.subgroup.group.order == nil and proto_b.subgroup.group.order ~= nil then
+        return true
+    elseif proto_a.subgroup.group.order ~= nil and proto_b.subgroup.group.order == nil then
         return false
     end
 
     -- Compare group order, if both have a value for the prop.
-    if proto_a.group ~= nil and proto_b.group ~= nil then
-        if proto_a.group.order < proto_b.group.order then
+    if proto_a.subgroup.group.order ~= nil and proto_b.subgroup.group.order ~= nil then
+        if proto_a.subgroup.group.order < proto_b.subgroup.group.order then
             return true
-        elseif proto_a.group.order > proto_b.group.order then
+        elseif proto_a.subgroup.group.order > proto_b.subgroup.group.order then
             return false
         end
     end
-    
-    -- Compare existance of a subgroup prop.
-    if proto_a.subgroup ~= nil and proto_b.subgroup == nil then
+
+    -- Compare group name.
+    if proto_a.subgroup.group.name < proto_b.subgroup.group.name then
         return true
-    elseif proto_a.subgroup == nil and proto_b.subgroup ~= nil then
+    elseif proto_a.subgroup.group.name > proto_b.subgroup.group.name then
+        return false
+    end
+
+    -- Compare existance of a subgroup order prop.
+    if proto_a.subgroup.order == nil and proto_b.subgroup.order ~= nil then
+        return true
+    elseif proto_a.subgroup.order ~= nil and proto_b.subgroup.order == nil then
         return false
     end
 
     -- Compare subgroup order, if both have a value for the prop.
-    if proto_a.subgroup ~= nil and proto_b.group ~= nil then
+    if proto_a.subgroup.order ~= nil and proto_b.subgroup.order ~= nil then
         if proto_a.subgroup.order < proto_b.subgroup.order then
             return true
         elseif proto_a.subgroup.order > proto_b.subgroup.order then
             return false
         end
+    end
+
+    -- Compare subgroup name.
+    if proto_a.subgroup.name < proto_b.subgroup.name then
+        return true
+    elseif proto_a.subgroup.name > proto_b.subgroup.name then
+        return false
     end
 
     -- Compare existance of an order prop.

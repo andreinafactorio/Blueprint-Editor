@@ -1,7 +1,11 @@
+local constants = require("state.constants")
 local blueprint = require("lib.blueprint")
 local proto_util = require("lib.proto")
 local modal_defines = require("defines")
 local text_util = require("lib.text")
+local mod_util = require("lib.util")
+local proto_list = require("gui.components.proto-list")
+local proto_select = require("gui.components.proto-select")
 
 local screen_protos = {}
 
@@ -12,7 +16,7 @@ local function get_elem_tooltip(default_type, default_name, value_type, value_na
         localised_name = proto_util.get_item_localised_name(value_name)
     elseif value_type == "fluid" then
         localised_name = proto_util.get_fluid_localised_name(value_name)
-    elseif value_type == "virtual" then
+    elseif value_type == "virtual" or value_type == "virtual-signal" then
         localised_name = proto_util.get_virtual_signal_localised_name(value_name)
     end
 
@@ -24,7 +28,7 @@ local function get_elem_tooltip(default_type, default_name, value_type, value_na
             default_localised_name = proto_util.get_item_localised_name(default_name)
         elseif default_type == "fluid" then
             default_localised_name = proto_util.get_fluid_localised_name(default_name)
-        elseif default_type == "virtual" then
+        elseif default_type == "virtual" or default_type == "virtual-signal" then
             localised_name = proto_util.get_virtual_signal_localised_name(default_name)
         end
 
@@ -67,242 +71,155 @@ local function get_elem_tooltip(default_type, default_name, value_type, value_na
     return tooltip
 end
 
-function screen_protos.build(player, modal_frame, blueprint_data)
-    local container = modal_frame.tabbed_pane.tab_protos_content
-    container.clear()
+function screen_protos.build(player, modal_flow, blueprint_data)
+    local inner_scroll = modal_flow.modal_frame.inner_content.inner_scroll
+    local controls_flow = modal_flow.controls_flow
 
-    local inner_content = container.add({
-        type = "scroll-pane",
-        name = "inner_content",
-        direction = "vertical",
-        style = "blueprint_editor_scroll_pane",
-    })
-
-    local has_content = false
-
-    if #blueprint_data.references.items > 0 then
-        has_content = true
-
-        local group_frame = inner_content.add({
-            type = "flow",
-            direction = "vertical",
-            name = "frame_items",
-        })
-
-        group_frame.style.horizontally_stretchable = true
-        group_frame.style.margin = 4
-
-        -- Header
-        group_frame.add({
-            type = "label",
-            caption = {"blueprint-editor.group-title-items"},
-            tooltip ={"blueprint-editor.group-title-items-tooltip"},
-            style = "caption_label",
-        })
-
-        local group_table = group_frame.add({
-            type = "table",
-            name = "table_items",
-            column_count = modal_defines.max_protos_per_row,
-        })
-
-        for _, item_name in ipairs(blueprint_data.references.items) do
-            local elem_value = item_name
-
-            if blueprint_data.changes.items[item_name] ~= nil then
-                elem_value = blueprint_data.changes.items[item_name]
-            end
-
-            local button = group_table.add({
-                type = "choose-elem-button",
-                elem_type = "item",
-                name = modal_defines.button_prefix .. "items--" .. item_name,
-                tooltip = get_elem_tooltip("item", item_name, "item", elem_value),
-            })
-
-            button.elem_value = elem_value
+    for _, references_name in ipairs({ "items", "fluids", "signals" }) do
+        if #blueprint_data.references[references_name] > 0 then
+            -- Create the list of buttons.
+            local list_flow = proto_list.build(
+                inner_scroll,
+                "frame_" .. references_name,
+                {"blueprint-editor.group-title-" .. references_name},
+                {"blueprint-editor.group-title-" .. references_name .. "-tooltip"},
+                modal_defines.max_protos_per_row
+            )
+            proto_list.populate_buttons(
+                list_flow,
+                blueprint_data.references[references_name],
+                modal_defines.button_prefix .. references_name .. "--"
+            )
+    
+            -- Create the controls frame for changing the value.
+            local control_frame = proto_select.build_frame(
+                modal_flow,
+                controls_flow,
+                references_name .. "_controls",
+                {"blueprint-editor.controls-title-" .. references_name}
+            )
+            control_frame.style.maximal_height = math.min(modal_defines.frame_maximal_height, player.display_resolution.height - 400)
+            proto_select.build(control_frame)
         end
-    end
-
-    if #blueprint_data.references.fluids > 0 then
-        has_content = true
-
-        local group_frame = inner_content.add({
-            type = "flow",
-            direction = "vertical",
-            name = "frame_fluids",
-        })
-
-        group_frame.style.horizontally_stretchable = true
-        group_frame.style.margin = 4
-
-        group_frame.add({
-            type = "label",
-            caption = {"blueprint-editor.group-title-fluids"},
-            tooltip ={"blueprint-editor.group-title-fluids-tooltip"},
-            style = "caption_label",
-        })
-
-        local group_table = group_frame.add({
-            type = "table",
-            name = "table_fluids",
-            column_count = modal_defines.max_protos_per_row,
-        })
-
-        for _, fluid_name in ipairs(blueprint_data.references.fluids) do
-            local elem_value = fluid_name
-
-            if blueprint_data.changes.fluids[fluid_name] ~= nil then
-                elem_value = blueprint_data.changes.fluids[fluid_name]
-            end
-
-            local button = group_table.add({
-                type = "choose-elem-button",
-                elem_type = "fluid",
-                name = modal_defines.button_prefix .. "fluids--" .. fluid_name,
-                tooltip = get_elem_tooltip("fluid", fluid_name, "fluid", elem_value),
-            })
-            
-            button.elem_value = elem_value
-        end
-    end
-
-    if #blueprint_data.references.signals > 0 then
-        has_content = true
-
-        local group_frame = inner_content.add({
-            type = "flow",
-            direction = "vertical",
-            name = "frame_signals",
-        })
-
-        group_frame.style.horizontally_stretchable = true
-        group_frame.style.margin = 4
-
-        group_frame.add({
-            type = "label",
-            caption = {"blueprint-editor.group-title-signals"},
-            style = "caption_label",
-        })
-
-        local group_table = group_frame.add({
-            type = "table",
-            name = "table_signals",
-            column_count = modal_defines.max_protos_per_row,
-        })
-
-        for _, signal in ipairs(blueprint_data.references.signals) do
-            local signal_change = blueprint_data.changes.signals[signal] or nil
-            local default_signal_type, default_signal_name = string.match(signal, "(.+)%.(.+)")
-            local signal_type, signal_name = string.match(signal_change or signal, "(.+)%.(.+)")
-
-            local button = group_table.add({
-                type = "choose-elem-button",
-                elem_type = "signal",
-                name = modal_defines.button_prefix .. "signals--" .. signal,
-                tooltip = get_elem_tooltip(
-                    default_signal_type == "virtual" and "virtual-signal" or default_signal_type,
-                    default_signal_name,
-                    signal_type == "virtual" and "virtual-signal" or signal_type,
-                    signal_name
-                )
-            })
-
-            button.elem_value = {
-                type = signal_type,
-                name = signal_name,
-            }
-        end
-    end
-
-    if not has_content then
-        inner_content.add({
-            type = "label",
-            caption = {"blueprint-editor.screen-protos-no-content"},
-        })
     end
 end
 
-function screen_protos.update(player, modal_frame, blueprint_data)
-    local inner_content = modal_frame.tabbed_pane.tab_protos_content.inner_content
+function screen_protos.update(player, modal_flow, prev_blueprint_data, blueprint_data, action, element)
+    local inner_scroll = modal_flow.modal_frame.inner_content.inner_scroll
 
-    if #blueprint_data.references.items > 0 then
-        local group_table = inner_content.frame_items.table_items
+    local items_collection = {
+        type = "item",
+        collection = game.item_prototypes,
+        is_valid = function(proto) return not proto.has_flag("hidden") end
+    }
+    
+    local fluids_collection = {
+        type = "fluid",
+        collection = game.fluid_prototypes,
+        is_valid = function(proto) return not proto.hidden end
+    }
+    
+    local virtuals_collection = {
+        type = "virtual",
+        collection = game.virtual_signal_prototypes,
+        is_valid = function(proto) return not proto.special end
+    }
 
-        for _, item_name in ipairs(blueprint_data.references.items) do
-            local button_name = modal_defines.button_prefix .. "items--" .. item_name
-            local button = group_table[button_name]
-            local elem_value = item_name
+    for references_name, opts in pairs({
+        items = {
+            prototype_collections = { items_collection },
+            parse_value = function(value) return "item", value end,
+            elem_type = "item"
+        },
+        fluids = {
+            prototype_collections = { fluids_collection },
+            parse_value = function(value) return "fluid", value end,
+            elem_type = "fluid"
+        },
+        signals = {
+            prototype_collections = { items_collection, fluids_collection, virtuals_collection },
+            parse_value = function(value) return string.match(value, "^(.+)%.(.+)$") end,
+            elem_type = "signal"
+        },
+    }) do
+        local selected_value = blueprint_data.selection ~= nil and blueprint_data.selection.type == references_name and blueprint_data.selection.value or nil
+        local list_flow = inner_scroll["frame_" .. references_name]
+        local control_frame = modal_flow.controls_flow[references_name .. "_controls"]
+        local button_name_prefix = modal_defines.button_prefix .. references_name .. "_change--"
+        local group_name_prefix = modal_defines.button_prefix .. "proto_group--"
 
-            if blueprint_data.changes.items[item_name] ~= nil then
-                elem_value = blueprint_data.changes.items[item_name]
-            end
-            
-            local is_changed = elem_value ~= item_name
-
-            button.style = "blueprint_editor_" .. (is_changed and "green_" or "") .. "slot_button"
-            button.elem_value = elem_value
-            button.tooltip = get_elem_tooltip(
-                "item",
-                item_name,
-                "item",
-                elem_value,
-                blueprint_data.references.items_sources[item_name]
+        if #blueprint_data.references[references_name] > 0 then
+            proto_list.update_buttons(
+                list_flow,
+                blueprint_data.references[references_name],
+                blueprint_data.references[references_name .. "_sources"],
+                blueprint_data.changes[references_name],
+                opts.parse_value,
+                selected_value,
+                modal_defines.button_prefix .. references_name .. "--"
             )
         end
-    end
 
-    if #blueprint_data.references.fluids > 0 then
-        local group_table = inner_content.frame_fluids.table_fluids
-
-        for _, fluid_name in ipairs(blueprint_data.references.fluids) do
-            local button_name = modal_defines.button_prefix .. "fluids--" .. fluid_name
-            local button = group_table[button_name]
-            local elem_value = fluid_name
-
-            if blueprint_data.changes.fluids[fluid_name] ~= nil then
-                elem_value = blueprint_data.changes.fluids[fluid_name]
+        if selected_value ~= nil then
+            if not control_frame.visible then
+                control_frame.visible = true
             end
-            
-            local is_changed = elem_value ~= fluid_name
 
-            button.style = "blueprint_editor_" .. (is_changed and "green_" or "") .. "slot_button"
-            button.elem_value = elem_value
-            button.tooltip = get_elem_tooltip(
-                "fluid",
-                fluid_name,
-                "fluid",
-                elem_value,
-                blueprint_data.references.fluids_sources[fluid_name]
+            local selected_type, selected_name = string.match(selected_value, "^(.+)%.(.+)$")
+            local changed_value = blueprint_data.changes[references_name][selected_value] or selected_value
+            local groups = {}
+
+            -- Recreate the icons if the view has changed.
+            if action == nil or action.type == constants.REFERENCE_SELECTION or action.type == constants.PROTO_GROUP_SELECTION then
+                local protos = {}
+                for _, prototype_collection in ipairs(opts.prototype_collections) do
+                    for _, proto in pairs(prototype_collection.collection) do
+                        if prototype_collection.type == selected_type and proto.name == selected_name or prototype_collection.is_valid(proto) then
+                            groups[proto.subgroup.group.name] = proto.subgroup.group
+
+                            if proto.subgroup.group.name == blueprint_data.selection.group then
+                                table.insert(protos, {
+                                    type = prototype_collection.type,
+                                    proto = proto,
+                                })
+                            end
+                        end
+                    end
+                end
+
+                table.sort(protos, function(a, b) return proto_util.order_comparator(a.proto, b.proto) end)
+                groups = mod_util.get_table_values(groups)
+                table.sort(groups, proto_util.group_comparator)
+
+                proto_select.populate_buttons(
+                    control_frame,
+                    protos,
+                    opts.elem_type,
+                    button_name_prefix,
+                    10
+                )
+            end
+
+            -- Recreate the group icons if the selection has changed.
+            if action == nil or action.type == constants.REFERENCE_SELECTION then
+                proto_select.populate_groups(
+                    control_frame,
+                    groups,
+                    group_name_prefix,
+                    6
+                )
+            end
+
+            proto_select.update_selections(
+                control_frame,
+                group_name_prefix .. blueprint_data.selection.group,
+                button_name_prefix .. changed_value,
+                nil --prev_selected_button_name -- TODO
             )
-        end
-    end
 
-    if #blueprint_data.references.signals > 0 then
-        local group_table = inner_content.frame_signals.table_signals
-
-        for _, signal in ipairs(blueprint_data.references.signals) do
-            local signal_change = blueprint_data.changes.signals[signal] or nil
-            local default_signal_type, default_signal_name = string.match(signal, "(.+)%.(.+)")
-            local signal_type, signal_name = string.match(signal_change or signal, "(.+)%.(.+)")
-            local button_name = modal_defines.button_prefix .. "signals--" .. signal
-            local button = group_table[button_name]
-            local is_changed = signal_change ~= nil and signal_change ~= signal
-
-            button.style = "blueprint_editor_" .. (is_changed and "green_" or "") .. "slot_button"
-
-            button.elem_value = {
-                type = signal_type,
-                name = signal_name,
-            }
-
-            button.tooltip = get_elem_tooltip(
-                default_signal_type == "virtual" and "virtual-signal" or default_signal_type,
-                default_signal_name,
-                signal_type == "virtual" and "virtual-signal" or signal_type,
-                signal_name,
-                blueprint_data.references.signals_sources[signal]
-            )
+        elseif control_frame ~= nil and control_frame.visible then
+            control_frame.visible = false
+            proto_select.clear(control_frame)
         end
     end
 end

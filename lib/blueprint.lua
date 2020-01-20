@@ -258,6 +258,59 @@ local function get_sorted_entity_sources(sources)
     return ret;
 end
 
+local function add_ref_items(item_name, entity_name, items, items_sources)
+    if game.item_prototypes[item_name] ~= nil then
+        items[item_name] = true
+
+        if items_sources[item_name] == nil then
+            items_sources[item_name] = {}
+        end
+
+        if entity_name ~= nil then
+            items_sources[item_name][entity_name] = true
+        end
+    end
+end
+
+local function add_ref_fluids(fluid_name, entity_name, fluids, fluids_sources)
+    if game.fluid_prototypes[fluid_name] ~= nil then
+        fluids[fluid_name] = true
+
+        if fluids_sources[fluid_name] == nil then
+            fluids_sources[fluid_name] = {}
+        end
+
+        if entity_name ~= nil then
+            fluids_sources[fluid_name][entity_name] = true
+        end
+    end
+end
+
+local function add_ref_signals(signal_type, signal_name, entity_name, signals, signals_sources)
+    local is_valid = false
+
+    if signal_type == "item" then
+        is_valid = game.item_prototypes[signal_name] ~= nil
+    elseif signal_type == "fluid" then
+        is_valid = game.fluid_prototypes[signal_name] ~= nil
+    elseif signal_type == "virtual" or signal_type == "virtual-signal" then
+        signal_type = "virtual"
+        is_valid = game.virtual_signal_prototypes[signal_name] ~= nil
+    end
+
+    if is_valid then
+        signals[signal_type .. "." .. signal_name] = true
+
+        if signals_sources[signal_type .. "." .. signal_name] == nil then
+            signals_sources[signal_type .. "." .. signal_name] = {}
+        end
+
+        if entity_name ~= nil then
+            signals_sources[signal_type .. "." .. signal_name][entity_name] = true
+        end
+    end
+end
+
 function blueprint.get_references(entities, blueprint_icons)
     local items = {}
     local items_sources = {}
@@ -275,12 +328,7 @@ function blueprint.get_references(entities, blueprint_icons)
 
     for _, blueprint_icon in ipairs(blueprint_icons) do
         if blueprint_icon.signal ~= nil then
-            signals[blueprint_icon.signal.type .. "." .. blueprint_icon.signal.name] = true
-
-            if signals_sources[blueprint_icon.signal.type .. "." .. blueprint_icon.signal.name] == nil then
-                signals_sources[blueprint_icon.signal.type .. "." .. blueprint_icon.signal.name] = {}
-            end
-            signals_sources[blueprint_icon.signal.type .. "." .. blueprint_icon.signal.name][""] = true
+            add_ref_signals(blueprint_icon.signal.type, blueprint_icon.signal.name, nil, signals, signals_sources)
         end
     end
 
@@ -291,63 +339,39 @@ function blueprint.get_references(entities, blueprint_icons)
         -- Item requests by this entity, this is what defines the item-request-proxy when the blueprint is placed.
         -- if entity.items ~= nil then
         --     for item_name, count in pairs(entity.items) do
-        --         items[item_name] = true
-
-        --         if items_sources[item_name] == nil then
-        --             items_sources[item_name] = {}
-        --         end
-        --         items_sources[item_name][entity.name] = true
+        --         add_ref_items(item_name, entity.name, items, items_sources)
         --     end
         -- end
 
         -- Name of the recipe prototype this assembling machine is set to.
-        if entity.recipe ~= nil and (entity_proto == nil or entity_proto.fixed_recipe == nil) then
+        -- Only add recipes of entity and recipe are valid.
+        if entity.recipe ~= nil and game.recipe_prototypes[entity.recipe] ~= nil and entity_proto ~= nil and entity_proto.fixed_recipe == nil then
             recipes[entity.name .. "." .. entity.recipe] = true
         end
 
         -- Cargo wagon inventory configuration.
         if entity.inventory ~= nil and entity.inventory.filters ~= nil then
             for _, filter in pairs(entity.inventory.filters) do
-                items[filter.name] = true
-
-                if items_sources[filter.name] == nil then
-                    items_sources[filter.name] = {}
-                end
-                items_sources[filter.name][entity.name] = true
+                add_ref_items(filter.name, entity.name, items, items_sources)
             end
         end
 
         -- Filter of the splitter, optional. Name of the item prototype the filter is set to, string.
         if entity.filter ~= nil then
-            items[entity.filter] = true
-
-            if items_sources[entity.filter] == nil then
-                items_sources[entity.filter] = {}
-            end
-            items_sources[entity.filter][entity.name] = true
+            add_ref_items(entity.filter, entity.name, items, items_sources)
         end
 
         -- Filters of the filter inserter or loader.
         if entity.filters ~= nil then
             for _, filter in pairs(entity.filters) do
-                items[filter.name] = true
-
-                if items_sources[filter.name] == nil then
-                    items_sources[filter.name] = {}
-                end
-                items_sources[filter.name][entity.name] = true
+                add_ref_items(filter.name, entity.name, items, items_sources)
             end
         end
 
         -- Used by Prototype/LogisticContainer.
         if entity.request_filters ~= nil then
             for _, request_filter in pairs(entity.request_filters) do
-                items[request_filter.name] = true
-
-                if items_sources[request_filter.name] == nil then
-                    items_sources[request_filter.name] = {}
-                end
-                items_sources[request_filter.name][entity.name] = true
+                add_ref_items(request_filter.name, entity.name, items, items_sources)
             end
         end
 
@@ -358,42 +382,22 @@ function blueprint.get_references(entities, blueprint_icons)
 
                 for type, value in string.gmatch(entity.alert_parameters.alert_message, text_tag_match_pattern) do
                     if type == "item" then
-                        items[value] = true
-
-                        if items_sources[value] == nil then
-                            items_sources[value] = {}
-                        end
-                        items_sources[value][entity.name] = true
+                        add_ref_items(value, entity.name, items, items_sources)
 
                     elseif type == "fluid" then
-                        fluids[value] = true
-
-                        if fluids_sources[value] == nil then
-                            fluids_sources[value] = {}
-                        end
-                        fluids_sources[value][entity.name] = true
-
-                    elseif type == "recipe" then
-                        recipes[value] = true
+                        add_ref_fluids(value, entity.name, fluids, fluids_sources)
 
                     elseif type == "virtual-signal" then
-                        signals["virtual." .. value] = true
-
-                        if signals_sources["virtual." .. value] == nil then
-                            signals_sources["virtual." .. value] = {}
-                        end
-                        signals_sources["virtual." .. value][entity.name] = true
+                        add_ref_signals(type, value, entity.name, signals, signals_sources)
                     end
                 end
             end
 
             if entity.alert_parameters.icon_signal_id ~= nil then
-                signals[entity.alert_parameters.icon_signal_id.type .. "." .. entity.alert_parameters.icon_signal_id.name] = true
+                local signal_type = entity.alert_parameters.icon_signal_id.type
+                local signal_name = entity.alert_parameters.icon_signal_id.name
 
-                if signals_sources[entity.alert_parameters.icon_signal_id.type .. "." .. entity.alert_parameters.icon_signal_id.name] == nil then
-                    signals_sources[entity.alert_parameters.icon_signal_id.type .. "." .. entity.alert_parameters.icon_signal_id.name] = {}
-                end
-                signals_sources[entity.alert_parameters.icon_signal_id.type .. "." .. entity.alert_parameters.icon_signal_id.name][entity.name] = true
+                add_ref_signals(signal_type, signal_name, entity.name, signals, signals_sources)
             end
         end
 
@@ -417,31 +421,13 @@ function blueprint.get_references(entities, blueprint_icons)
 
             for type, value in string.gmatch(entity.station, text_tag_match_pattern) do
                 if type == "item" then
-                    items[value] = true
-
-                    if items_sources[value] == nil then
-                        items_sources[value] = {}
-                    end
-                    items_sources[value][entity.name] = true
+                    add_ref_items(value, entity.name, items, items_sources)
 
                 elseif type == "fluid" then
-                    fluids[value] = true
-
-                    if fluids_sources[value] == nil then
-                        fluids_sources[value] = {}
-                    end
-                    fluids_sources[value][entity.name] = true
-
-                elseif type == "recipe" then
-                    recipes[value] = true
+                    add_ref_fluids(value, entity.name, fluids, fluids_sources)
 
                 elseif type == "virtual-signal" then
-                    signals["virtual." .. value] = true
-
-                    if signals_sources["virtual." .. value] == nil then
-                        signals_sources["virtual." .. value] = {}
-                    end
-                    signals_sources["virtual." .. value][entity.name] = true
+                    add_ref_signals(type, value, entity.name, signals, signals_sources)
                 end
             end
         end
@@ -458,12 +444,7 @@ function blueprint.get_references(entities, blueprint_icons)
                 if control_behavior[conditions_prop] ~= nil then
                     foreach_logic_references(control_behavior[conditions_prop], function(value)
                         if type(value) == "table" and value.type ~= nil and value.name ~= nil then
-                            signals[value.type .. "." .. value.name] = true
-
-                            if signals_sources[value.type .. "." .. value.name] == nil then
-                                signals_sources[value.type .. "." .. value.name] = {}
-                            end
-                            signals_sources[value.type .. "." .. value.name][entity.name] = true
+                            add_ref_signals(value.type, value.name, entity.name, signals, signals_sources)
 
                         elseif type(value) == "number" then
                             constants[value] = true
@@ -480,24 +461,14 @@ function blueprint.get_references(entities, blueprint_icons)
             if control_behavior.filters ~= nil then
                 for _, filter in pairs(control_behavior.filters) do
                     if filter.signal ~= nil then
-                        signals[filter.signal.type .. "." .. filter.signal.name] = true
-
-                        if signals_sources[filter.signal.type .. "." .. filter.signal.name] == nil then
-                            signals_sources[filter.signal.type .. "." .. filter.signal.name] = {}
-                        end
-                        signals_sources[filter.signal.type .. "." .. filter.signal.name][entity.name] = true
+                        add_ref_signals(filter.signal.type, filter.signal.name, entity.name, signals, signals_sources)
                     end
                 end
             end
 
             foreach_logic_references(control_behavior, function(value)
                 if type(value) == "table" and value.type ~= nil and value.name ~= nil then
-                    signals[value.type .. "." .. value.name] = true
-
-                    if signals_sources[value.type .. "." .. value.name] == nil then
-                        signals_sources[value.type .. "." .. value.name] = {}
-                    end
-                    signals_sources[value.type .. "." .. value.name][entity.name] = true
+                    add_ref_signals(value.type, value.name, entity.name, signals, signals_sources)
 
                 elseif type(value) == "number" then
                     constants[value] = true
@@ -519,15 +490,11 @@ function blueprint.get_references(entities, blueprint_icons)
                 if schedule_stop.wait_conditions ~= nil then
                     for _, wait_condition in pairs(schedule_stop.wait_conditions) do
                         if wait_condition.condition ~= nil then
+
                             if wait_condition.type == "item_count" then
                                 foreach_logic_references(wait_condition.condition, function(value)
-                                    if type(value) == "table" and value.type ~= nil and value.name ~= nil then
-                                        items[value.name] = true
-
-                                        if items_sources[value.name] == nil then
-                                            items_sources[value.name] = {}
-                                        end
-                                        items_sources[value.name][entity.name] = true
+                                    if type(value) == "table" and value.type == "item" and value.name ~= nil then
+                                        add_ref_items(value.name, entity.name, items, items_sources)
 
                                     elseif type(value) == "number" then
                                         constants[value] = true
@@ -538,15 +505,11 @@ function blueprint.get_references(entities, blueprint_icons)
                                         constants_sources[value][entity.name] = true
                                     end
                                 end)
+
                             elseif wait_condition.type == "fluid_count" then
                                 foreach_logic_references(wait_condition.condition, function(value)
-                                    if type(value) == "table" and value.type ~= nil and value.name ~= nil then
-                                        fluids[value.name] = true
-
-                                        if fluids_sources[value.name] == nil then
-                                            fluids_sources[value.name] = {}
-                                        end
-                                        fluids_sources[value.name][entity.name] = true
+                                    if type(value) == "table" and value.type == "fluid" and value.name ~= nil then
+                                        add_ref_fluids(value.name, entity.name, fluids, fluids_sources)
 
                                     elseif type(value) == "number" then
                                         constants[value] = true
@@ -557,15 +520,11 @@ function blueprint.get_references(entities, blueprint_icons)
                                         constants_sources[value][entity.name] = true
                                     end
                                 end)
+
                             elseif wait_condition.type == "circuit" then
                                 foreach_logic_references(wait_condition.condition, function(value)
                                     if type(value) == "table" and value.type ~= nil and value.name ~= nil then
-                                        signals[value.type .. "." .. value.name] = true
-
-                                        if signals_sources[value.type .. "." .. value.name] == nil then
-                                            signals_sources[value.type .. "." .. value.name] = {}
-                                        end
-                                        signals_sources[value.type .. "." .. value.name][entity.name] = true
+                                        add_ref_signals(value.type, value.name, entity.name, signals, signals_sources)
 
                                     elseif type(value) == "number" then
                                         constants[value] = true

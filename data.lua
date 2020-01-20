@@ -3,15 +3,21 @@ data:extend({
 	-- Fonts
 	{
 		type = "font",
+		name = "blueprint-editor_color-icon_large",
+		from = "blueprint-editor_SquareIcon-normal",
+		size = 75,
+	},
+	{
+		type = "font",
 		name = "blueprint-editor_color-icon",
 		from = "blueprint-editor_SquareIcon-normal",
-		size = 28
+		size = 28,
 	},
 	{
 		type = "font",
 		name = "blueprint-editor_color-icon_small",
 		from = "blueprint-editor_SquareIcon-normal",
-		size = 14
+		size = 14,
 	},
 
 	-- Sprites
@@ -24,9 +30,62 @@ data:extend({
 		priority = "extra-high-no-scale",
 		flags = {"gui-icon"}
 	},
+	{
+		type = "sprite",
+		name = "blueprint-editor_blueprint-white",
+		filename = "__Blueprint-Editor__/graphics/shortcut-edit-x32-white.png",
+		size = 32,
+		mipmap_count = 2,
+		priority = "extra-high-no-scale",
+		flags = {"gui-icon"}
+	},
+
+	-- Shortcuts
+	{
+		type = "shortcut",
+		name = "blueprint-editor-shortcut",
+		order = "b[blueprints]-g[edit]",
+		action = "lua",
+		localised_name = {"blueprint-editor.shortcut-caption"},
+		technology_to_unlock = "personal-roboport-equipment",
+		style = "blue",
+		icon = {
+			filename = "__Blueprint-Editor__/graphics/shortcut-edit-x32-white.png",
+			priority = "extra-high-no-scale",
+			size = 32,
+			scale = 0.5,
+			mipmap_count = 2,
+			flags = {"gui-icon"}
+		},
+		small_icon = {
+			filename = "__Blueprint-Editor__/graphics/shortcut-x24.png",
+			priority = "extra-high-no-scale",
+			size = 24,
+			scale = 0.5,
+			mipmap_count = 2,
+			flags = {"gui-icon"}
+		},
+		disabled_small_icon = {
+			filename = "__Blueprint-Editor__/graphics/shortcut-x24-white.png",
+			priority = "extra-high-no-scale",
+			size = 24,
+			scale = 1,
+			mipmap_count = 2,
+			flags = {"gui-icon"}
+		},
+	  },
 })
 
 local gui_styles = data.raw["gui-style"]["default"]
+
+gui_styles["blueprint_editor_slot_table"] = {
+	type = "table_style",
+	horizontal_spacing = 0,
+	vertical_spacing = 0,
+	cell_padding = 1,
+	top_margin = -2,
+	bottom_margin = -2,
+}
 
 local function selection_shadow(tint_value)
 	return {
@@ -171,6 +230,29 @@ for color_prefix, positions in pairs(slot_positions) do
 	gui_styles[selected_color_slot_button].vertical_align = "center"
 end
 
+gui_styles.blueprint_editor_top_button = {
+	type = "button_style",
+	parent = "button",
+	size = 38,
+	top_padding = 3,
+	right_padding = 3,
+	bottom_padding = 3,
+	left_padding = 3,
+	default_graphical_set = {
+		base = {position = {329, 48}, corner_size = 8},
+		shadow = default_dirt
+	},
+	hovered_graphical_set = {
+		base = {position = {346, 48}, corner_size = 8},
+		shadow = default_dirt,
+		glow = default_glow(red_arrow_button_glow_color, 0.5)
+	},
+	clicked_graphical_set = {
+		base = {position = {363, 48}, corner_size = 8},
+		shadow = default_dirt
+	},
+}
+
 gui_styles.blueprint_editor_color_button = {
 	type = "button_style",
 	parent = "slot_button",
@@ -193,6 +275,15 @@ gui_styles.blueprint_editor_color_changed_button = {
 	horizontal_align = "center",
 	vertical_align = "center",
 	font = "blueprint-editor_color-icon"
+}
+
+gui_styles.blueprint_editor_color_label = {
+	type = "label_style",
+	parent = "frame_title",
+	font = "blueprint-editor_color-icon_large",
+	horizontal_align = "center",
+	vertical_align = "center",
+	height = 77,
 }
 
 gui_styles.blueprint_editor_create_blueprint_button = {
@@ -240,7 +331,7 @@ gui_styles.blueprint_editor_tab_content = {
 	right_margin = 6,
 	graphical_set = {
 		base = {
-			position = {85, 0},
+			position = {17, 0},
 			corner_size = 8,
 			center = {position = {42, 8}, size = 1},
 			draw_type = "outer"
@@ -308,4 +399,125 @@ gui_styles.blueprint_editor_close_button = {
 	left_margin = 4,
 	width = 24,
 	height = 24
+}
+
+gui_styles.blueprint_editor_hue_frame = {
+	type = "frame_style",
+	left_padding = -6,
+	right_padding = -6,
+	top_padding = -5,
+	bottom_padding = -6,
+	graphical_set = {
+		base = {
+			center = {
+				filename = "__Blueprint-Editor__/graphics/hue.png",
+				position = {0, 0},
+				size = {360, 1},
+				scale = 1,
+			},
+			left = { position = {59, 8}, size = {1, 1}, scale = 6},
+			right = { position = {59, 8}, size = {1, 1}, scale = 6},
+			top = { position = {59, 8}, size = {1, 1}, scale = 5 },
+			bottom = { position = {59, 8}, size = {1, 1}, scale = 6 },
+		},
+	},
+}
+
+gui_styles.blueprint_editor_hue_slider = {
+	type = "slider_style",
+	parent = "slider",
+	height = 20,
+	button = {
+		type = "button_style",
+		width = 12,
+		height = 17,
+		padding = 0,
+		default_graphical_set = {
+			base = {
+				top = {position = {0, 189}, size = {1, 1}, scale = 5},
+				center = {position = {0, 189}, size = {24, 11}, scale = 0.5 },
+				bottom = {position = {0, 220}, size = {24, 4}},
+			},
+			shadow =  {
+				top = {position = {0, 184}, size = {1, 1}, scale = 5},
+				center = {position = {96, 184}, size = {40, 16}, scale = 0.5 },
+				bottom = {position = {96, 224}, size = {40, 8}},
+				left_outer_border_shift = -4,
+				right_outer_border_shift = 4,
+				tint = {0, 0, 0, 0.55},
+				draw_type = "outer"
+			}
+        },
+        hovered_graphical_set = {
+			base = {
+				top = {position = {48, 189}, size = {1, 1}, scale = 5},
+				center = {position = {48, 189}, size = {24, 11}, scale = 0.5 },
+				bottom = {position = {48, 220}, size = {24, 4}},
+			},
+			shadow =  {
+				top = {position = {0, 184}, size = {1, 1}, scale = 5},
+				center = {position = {96, 184}, size = {40, 16}, scale = 0.5 },
+				bottom = {position = {96, 224}, size = {40, 8}},
+				left_outer_border_shift = -4,
+				right_outer_border_shift = 4,
+				tint = default_glow_color,
+				draw_type = "outer"
+			}
+		},
+		clicked_graphical_set = {
+			base = {
+				top = {position = {72, 189}, size = {1, 1}, scale = 5},
+				center = {position = {72, 189}, size = {24, 11}, scale = 0.5 },
+				bottom = {position = {72, 220}, size = {24, 4}},
+			},
+			shadow =  {
+				top = {position = {0, 184}, size = {1, 1}, scale = 5},
+				center = {position = {96, 184}, size = {40, 16}, scale = 0.5 },
+				bottom = {position = {96, 224}, size = {40, 8}},
+				left_outer_border_shift = -4,
+				right_outer_border_shift = 4,
+				tint = {0, 0, 0, 0.35},
+				draw_type = "outer"
+			}
+		},
+        disabled_graphical_set = {
+			base = {position = {24, 189}, size = {24, 35}},
+        },
+        left_click_sound = {},
+	},
+	full_bar = {
+		base = {
+			left = {position = {59, 8}, size = {1, 1}},
+			right = {position = {59, 8}, size = {1, 1}},
+			center = {position = {59, 8}, size = {1, 1}},
+		}
+	},
+	full_bar_disabled = {
+		base = {
+			left = {position = {59, 8}, size = {1, 1}},
+			right = {position = {59, 8}, size = {1, 1}},
+			center = {position = {59, 8}, size = {1, 1}},
+		}
+	},
+	empty_bar = {
+		base = {
+			left = {position = {59, 8}, size = {1, 1}},
+			right = {position = {59, 8}, size = {1, 1}},
+			center = {position = {59, 8}, size = {1, 1}},
+		}
+	},
+	empty_bar_disabled = {
+		base = {
+			left = {position = {59, 8}, size = {1, 1}},
+			right = {position = {59, 8}, size = {1, 1}},
+			center = {position = {59, 8}, size = {1, 1}},
+		}
+	},
+}
+
+gui_styles.blueprint_editor_import_textbox = {
+	type = "textbox_style",
+	parent = "stretchable_textfield",
+	margin = 0,
+	height = 200,
 }

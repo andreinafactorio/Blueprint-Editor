@@ -36,10 +36,7 @@ function player_data.set_blueprint_data(player, export_string, blueprint_icons, 
         blueprint_icons = blueprint_icons,
         entities = entities,
         references = references,
-        selection = {
-            color = references.colors[1] or nil,
-            recipe = references.recipes_entity_names[1] and (references.recipes_entity_names[1] .. "." .. references.recipes_by_entity[references.recipes_entity_names[1]][1]) or nil,
-        },
+        selection = nil,
         changes = {
             items = {},
             fluids = {},
@@ -52,8 +49,42 @@ function player_data.set_blueprint_data(player, export_string, blueprint_icons, 
     }
 end
 
+function player_data.update_blueprint_data(player, selection, changes)
+    local has_changed = false
+    local blueprint_data = player_data.get_blueprint_data(player)
+
+    if blueprint_data ~= nil then
+        if blueprint_data.selection ~= selection then
+            has_changed = true
+            blueprint_data.selection = selection
+        end
+
+        if blueprint_data.changes ~= changes then
+            has_changed = true
+            blueprint_data.changes = changes
+        end
+    end
+
+    return has_changed
+end
+
 function player_data.clear_blueprint_data(player)
     player_data.get_data(player).blueprint_data = nil
+end
+
+function player_data.load_from_item_stack(player, item_stack)
+    local export_stack = item_stack.export_stack()
+    local blueprint_icons = util.table.deepcopy(item_stack.blueprint_icons)
+    local entities = item_stack.get_blueprint_entities()
+
+    -- log("IMPORTED ENTITIES " .. serpent.block(entities)) -- TODO DEBUG
+
+    player_data.set_blueprint_data(
+        player,
+        export_stack,
+        blueprint_icons,
+        entities
+    )
 end
 
 return player_data

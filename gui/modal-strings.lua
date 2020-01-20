@@ -3,23 +3,15 @@ local modal_defines = require("defines")
 
 local screen_strings = {}
 
-function screen_strings.build(player, modal_frame, blueprint_data)
-    local container = modal_frame.tabbed_pane.tab_strings_content
-    container.clear()
-
-    local inner_content = container.add({
-        type = "scroll-pane",
-        name = "inner_content",
-        direction = "vertical",
-        style = "blueprint_editor_scroll_pane",
-    })
+function screen_strings.build(player, modal_flow, blueprint_data)
+    local inner_scroll = modal_flow.modal_frame.inner_content.inner_scroll
 
     local has_content = false
 
     if #blueprint_data.references.stations > 0 then
         has_content = true
 
-        local group_frame = inner_content.add({
+        local group_frame = inner_scroll.add({
             type = "flow",
             direction = "vertical",
             name = "frame_stations",
@@ -31,7 +23,7 @@ function screen_strings.build(player, modal_frame, blueprint_data)
         group_frame.add({
             type = "label",
             caption = {"blueprint-editor.group-title-stations"},
-            style = "caption_label",
+            style = "large_caption_label",
         })
 
         local textfields_flow = group_frame.add({
@@ -73,7 +65,7 @@ function screen_strings.build(player, modal_frame, blueprint_data)
     if #blueprint_data.references.alert_messages > 0 then
         has_content = true
 
-        local group_frame = inner_content.add({
+        local group_frame = inner_scroll.add({
             type = "flow",
             direction = "vertical",
             name = "frame_alert_messages",
@@ -85,7 +77,7 @@ function screen_strings.build(player, modal_frame, blueprint_data)
         group_frame.add({
             type = "label",
             caption = {"blueprint-editor.group-title-alert-messages"},
-            style = "caption_label",
+            style = "large_caption_label",
         })
 
         local textfields_flow = group_frame.add({
@@ -123,21 +115,14 @@ function screen_strings.build(player, modal_frame, blueprint_data)
             })
         end
     end
-
-    if not has_content then
-        inner_content.add({
-            type = "label",
-            caption = {"blueprint-editor.screen-strings-no-content"},
-        })
-    end
 end
 
-function screen_strings.update(player, modal_frame, blueprint_data, event_element_name)
-    local inner_content = modal_frame.tabbed_pane.tab_strings_content.inner_content
+function screen_strings.update(player, modal_flow, prev_blueprint_data, blueprint_data, action, element)
+    local inner_scroll = modal_flow.modal_frame.inner_content.inner_scroll
 
-    if inner_content ~= nil then
+    if inner_scroll ~= nil then
         if #blueprint_data.references.stations > 0 then
-            local group = inner_content.frame_stations
+            local group = inner_scroll.frame_stations
             local textfields = group.textfields
 
             for _, station in ipairs(blueprint_data.references.stations) do
@@ -146,7 +131,7 @@ function screen_strings.update(player, modal_frame, blueprint_data, event_elemen
                 local textfield_name = modal_defines.textfield_prefix .. "stations--" .. station
                 local textfield = textfields[textfield_name]
 
-                if station_change == nil and event_element_name ~= textfield_name then
+                if station_change == nil and (element == nil or element.name ~= textfield_name) then
                     textfield.text = blueprint.replace_text_references(station, function(type, value)
                         return blueprint.get_text_tag_replacment(blueprint_data.changes, type, value)
                     end)
@@ -157,7 +142,7 @@ function screen_strings.update(player, modal_frame, blueprint_data, event_elemen
         end
 
         if #blueprint_data.references.alert_messages > 0 then
-            local group = inner_content.frame_alert_messages
+            local group = inner_scroll.frame_alert_messages
             local textfields = group.textfields
 
             for _, alert_message in ipairs(blueprint_data.references.alert_messages) do
@@ -166,7 +151,7 @@ function screen_strings.update(player, modal_frame, blueprint_data, event_elemen
                 local textfield_name = modal_defines.textfield_prefix .. "alert_messages--" .. alert_message
                 local textfield = textfields[textfield_name]
 
-                if alert_message_change == nil and event_element_name ~= textfield_name then
+                if alert_message_change == nil and (element == nil or element.name ~= textfield_name) then
                     textfield.text = blueprint.replace_text_references(alert_message, function(type, value)
                         return blueprint.get_text_tag_replacment(blueprint_data.changes, type, value)
                     end)
