@@ -1,4 +1,13 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.0.0
+Date: 2020-01-19
+  Features:
+    - Major rework of the UI
+    - Combined all tabs into one view
+    - Item/fluid/signal selection changed to use custom UI
+    - Add "shortcut" button support (shortcuts appear to the right of the toolbar buttons)
+    - Support importing from a blueprint string
+---------------------------------------------------------------------------------------------------
 Version: 0.1.2
 Date: 2020-01-11
   Bugs:

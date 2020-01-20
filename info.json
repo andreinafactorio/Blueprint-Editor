@@ -1,8 +1,8 @@
 {
   "name": "Blueprint-Editor",
   "factorio_version": "0.17",
-  "version": "0.1.2",
-  "title": "Blueprint Cloner (Beta)",
+  "version": "1.0.0",
+  "title": "Blueprint Cloner",
   "description": "Quickly replace filters, station names, recipes, signals, colors in blueprints.",
   "author": "andreinafactory",
   "dependencies": [
