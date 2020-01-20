@@ -119,11 +119,28 @@ local function on_runtime_mod_setting_changed(event)
     end
 end
 
+local function pcall_event(event_handler)
+    return function(event)
+        xpcall(
+            function() event_handler(event) end,
+            function(err)
+                err = err or "??"
+                log(err .. "\n" .. debug.traceback())
+
+                local player = get_event_player(event)
+                if player ~= nil then
+                    player.print("Blueprint Editor Error: " .. err .. "\nMore detail is available in the game's log file. See wiki.factorio.com/log_file")
+                end
+            end
+        )
+    end
+end
+
 -- script.on_configuration_changed(on_configuration_changed)
-script.on_event(defines.events.on_player_created, on_player_init)
-script.on_event(defines.events.on_player_joined_game, on_player_init)
-script.on_event(defines.events.on_gui_click, on_gui_click)
-script.on_event(defines.events.on_gui_value_changed, on_gui_value_changed)
-script.on_event(defines.events.on_gui_text_changed, on_gui_text_changed)
-script.on_event(defines.events.on_lua_shortcut, on_lua_shortcut)
-script.on_event(defines.events.on_runtime_mod_setting_changed, on_runtime_mod_setting_changed)
+script.on_event(defines.events.on_player_created, pcall_event(on_player_init))
+script.on_event(defines.events.on_player_joined_game, pcall_event(on_player_init))
+script.on_event(defines.events.on_gui_click, pcall_event(on_gui_click))
+script.on_event(defines.events.on_gui_value_changed, pcall_event(on_gui_value_changed))
+script.on_event(defines.events.on_gui_text_changed, pcall_event(on_gui_text_changed))
+script.on_event(defines.events.on_lua_shortcut, pcall_event(on_lua_shortcut))
+script.on_event(defines.events.on_runtime_mod_setting_changed, pcall_event(on_runtime_mod_setting_changed))
