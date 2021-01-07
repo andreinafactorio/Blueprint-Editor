@@ -229,6 +229,8 @@ function modal.on_gui_click(player, element, event)
             if player.cursor_stack.import_stack(blueprint_data.export_string) == 0 then
                 player.cursor_stack.set_blueprint_entities(entities)
                 player.cursor_stack.blueprint_icons = blueprint_icons
+                player.add_to_clipboard(player.cursor_stack)
+                player.activate_paste()
             end
 
             modal.close(player)
