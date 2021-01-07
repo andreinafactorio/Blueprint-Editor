@@ -1,4 +1,16 @@
 ---------------------------------------------------------------------------------------------------
+Version: 3.0.1
+Date: 2021-01-06
+  Features:
+    - Change creation of new blueprint to use "paste" mechanic to avoid creating blueprints in
+      the player's inventory. You can still drop the blueprint into your inventory to create
+      an actual blueprint, just like with the normal copy/paste mechanic.
+---------------------------------------------------------------------------------------------------
+Version: 3.0.0
+Date: 2021-01-06
+  Features:
+    - Updated for 1.1
+---------------------------------------------------------------------------------------------------
 Version: 2.0.0
 Date: 2020-01-26
   Features:
