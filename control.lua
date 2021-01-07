@@ -57,7 +57,7 @@ local function handle_shortcut(player)
 
     if is_holding_blueprint then
         player_data.load_from_item_stack(player, player.cursor_stack)
-        player.clean_cursor()
+        player.clear_cursor()
     end
 
     gui_modal.open(player)

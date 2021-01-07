@@ -182,12 +182,12 @@ function modal.on_gui_click(player, element, event)
         if mod_util.is_player_holding_blueprint(player) then
             modal.close(player)
             player_data.load_from_item_stack(player, player.cursor_stack)
-            player.clean_cursor()
+            player.clear_cursor()
             modal.open(player)
         end
 
     elseif element.name == modal_defines.button_import_blueprint_string then
-        if player.cursor_stack ~= nil and player.clean_cursor() then
+        if player.cursor_stack ~= nil and player.clear_cursor() then
             local modal_flow = get_modal_container(player)[modal_defines.modal_name]
             local blueprint_string = modal_flow.modal_frame[modal_defines.textbox_blueprint_string].text
             if player.cursor_stack.import_stack(blueprint_string) <= 0 then
@@ -225,7 +225,7 @@ function modal.on_gui_click(player, element, event)
             blueprint.apply_changes_to_entity(entity, blueprint_data.changes)
         end
 
-        if player.cursor_stack ~= nil and player.clean_cursor() then
+        if player.cursor_stack ~= nil and player.clear_cursor() then
             if player.cursor_stack.import_stack(blueprint_data.export_string) == 0 then
                 player.cursor_stack.set_blueprint_entities(entities)
                 player.cursor_stack.blueprint_icons = blueprint_icons

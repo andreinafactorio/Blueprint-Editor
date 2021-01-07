@@ -52,7 +52,7 @@ function screen_recipes.build(player, modal_flow, blueprint_data)
         recipes_flow.add({
             type = "label",
             caption = {"blueprint-editor.group-title-recipes"},
-            style = "large_caption_label",
+            style = "blueprint_editor_large_caption_label",
         })
 
         for _, entity_name in ipairs(blueprint_data.references.recipes_entity_names) do

@@ -83,7 +83,7 @@ function component.build(container, list_name, header_caption, header_tooltip, m
         type = "label",
         caption = header_caption,
         tooltip = header_tooltip,
-        style = "large_caption_label",
+        style = "blueprint_editor_large_caption_label",
     })
 
     local buttons_table = list_flow.add({

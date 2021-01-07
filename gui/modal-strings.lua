@@ -23,7 +23,7 @@ function screen_strings.build(player, modal_flow, blueprint_data)
         group_frame.add({
             type = "label",
             caption = {"blueprint-editor.group-title-stations"},
-            style = "large_caption_label",
+            style = "blueprint_editor_large_caption_label",
         })
 
         local textfields_flow = group_frame.add({
@@ -77,7 +77,7 @@ function screen_strings.build(player, modal_flow, blueprint_data)
         group_frame.add({
             type = "label",
             caption = {"blueprint-editor.group-title-alert-messages"},
-            style = "large_caption_label",
+            style = "blueprint_editor_large_caption_label",
         })
 
         local textfields_flow = group_frame.add({

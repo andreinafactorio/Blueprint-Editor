@@ -73,7 +73,7 @@ function screen_colors.build(player, modal_flow, blueprint_data)
         colors_flow.add({
             type = "label",
             caption = {"blueprint-editor.group-title-colors"},
-            style = "large_caption_label",
+            style = "blueprint_editor_large_caption_label",
         })
 
         local group_table = colors_flow.add({
@@ -291,7 +291,7 @@ function screen_colors.update(player, modal_flow, prev_blueprint_data, blueprint
                         local textfield = color_sliders_table[textfield_name]
 
                         if textfield.text ~= color_values[color_data.prop] then
-                            textfield.text = color_values[color_data.prop]
+                            textfield.text = color_values[color_data.prop] .. ''
                         end
                     end
                 end

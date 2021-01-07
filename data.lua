@@ -230,6 +230,12 @@ for color_prefix, positions in pairs(slot_positions) do
 	gui_styles[selected_color_slot_button].vertical_align = "center"
 end
 
+gui_styles.blueprint_editor_large_caption_label = {
+	type = "label_style",
+	parent = "caption_label",
+	font = "default-large-bold"
+}
+
 gui_styles.blueprint_editor_top_button = {
 	type = "button_style",
 	parent = "button",
@@ -267,14 +273,44 @@ gui_styles.blueprint_editor_color_button = {
 
 gui_styles.blueprint_editor_color_changed_button = {
 	type = "button_style",
-	parent = "green_slot_button",
+	parent = "slot_button",
 	width = 32,
 	height = 32,
 	top_padding = 4,
 	left_padding = 2,
 	horizontal_align = "center",
 	vertical_align = "center",
-	font = "blueprint-editor_color-icon"
+	font = "blueprint-editor_color-icon",
+	default_graphical_set = {
+		border = 1,
+		center =
+		{
+		filename = "__core__/graphics/gui.png",
+		position = {111, 108},
+		size = {36, 36},
+		scale = 1
+		}
+	},
+	hovered_graphical_set = {
+		border = 1,
+		center =
+		{
+		filename = "__core__/graphics/gui.png",
+		position = {148, 108},
+		size = {36, 36},
+		scale = 1
+		}
+	},
+	clicked_graphical_set = {
+		border = 1,
+		center =
+		{
+		filename = "__core__/graphics/gui.png",
+		position = {185, 108},
+		size = {36, 36},
+		scale = 1
+		}
+	}
 }
 
 gui_styles.blueprint_editor_color_label = {
@@ -395,7 +431,7 @@ gui_styles.blueprint_editor_textfield_changed = {
 
 gui_styles.blueprint_editor_close_button = {
 	type = "button_style",
-	parent = "close_button",
+    parent = "frame_button",
 	left_margin = 4,
 	width = 24,
 	height = 24
